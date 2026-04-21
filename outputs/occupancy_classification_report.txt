@@ -1,0 +1,15 @@
+Accuracy: 0.6386
+
+Classification Report:
+              precision    recall  f1-score   support
+
+        FREE       0.71      0.70      0.71       125
+    OCCUPIED       0.53      0.53      0.53        77
+
+    accuracy                           0.64       202
+   macro avg       0.62      0.62      0.62       202
+weighted avg       0.64      0.64      0.64       202
+
+Confusion Matrix:
+[[88 37]
+ [36 41]]
