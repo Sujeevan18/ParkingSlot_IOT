@@ -57,3 +57,7 @@ python src/main.py
 ## Configuration
 
 Configure your environment variables in `.env` file.
+
+
+frontend - npm run dev
+backend - node server.js

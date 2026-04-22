@@ -1,14 +1,11 @@
 import { useState, useEffect } from 'react';
 import { SummaryCard } from '../components/SummaryCard';
-import { StatusBadge } from '../components/StatusBadge';
 import { LiveSlotPanel } from '../components/LiveSlotPanel';
 import { AlertsTable } from '../components/AlertsTable';
 import { VehiclesTable } from '../components/VehiclesTable';
 import { get } from '../api/api';
 
-/**
- * LiveMonitoringPage component for real-time parking monitoring
- */
+
 export function LiveMonitoringPage() {
   const [slots, setSlots] = useState([]);
   const [alerts, setAlerts] = useState([]);
@@ -19,45 +16,36 @@ export function LiveMonitoringPage() {
     available: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch live data from API
-        // const slotsData = await get('/parking/slots');
-        // const alertsData = await get('/alerts');
-        // const vehiclesData = await get('/vehicles');
+ useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const [slotsData, alertsData, vehiclesData, statsData] = await Promise.all([
+        get('/slots'),
+        get('/alerts'),
+        get('/vehicles'),
+        get('/dashboard/stats'),
+      ]);
 
-        // Temporary mock data
-        setSlots([
-          { id: 'A1', occupied: true },
-          { id: 'A2', occupied: false },
-          { id: 'A3', occupied: true },
-          { id: 'B1', occupied: false },
-          { id: 'B2', occupied: false },
-        ]);
+      setSlots(slotsData);
+      setAlerts(alertsData);
+      setVehicles(vehiclesData);
+      setStats(statsData);
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error('Error fetching live data:', error);
+      setError('Failed to load live data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        setAlerts([
-          { id: 1, timestamp: new Date(), type: 'Warning', message: 'High occupancy detected', status: 'Active' },
-        ]);
+  fetchData();
 
-        setVehicles([
-          { id: 1, licensePlate: 'ABC123', slotNumber: 'A1', entryTime: new Date(), duration: 45 },
-        ]);
-
-        setStats({ totalSlots: 5, occupied: 2, available: 3 });
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-    // Optional: Set up interval for real-time updates
-    // const interval = setInterval(fetchData, 5000);
-    // return () => clearInterval(interval);
-  }, []);
+  const interval = setInterval(fetchData, 5000);
+  return () => clearInterval(interval);
+}, []);
 
   if (loading) return <div>Loading...</div>;
 

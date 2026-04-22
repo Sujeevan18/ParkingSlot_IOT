@@ -5,9 +5,6 @@ import { AnomalyBarChart } from '../components/AnomalyBarChart';
 import { ClusterTable } from '../components/ClusterTable';
 import { get } from '../api/api';
 
-/**
- * AnalyticsPage component for viewing parking analytics and reports
- */
 export function AnalyticsPage() {
   const [occupancyData, setOccupancyData] = useState([]);
   const [anomalies, setAnomalies] = useState([]);
@@ -22,34 +19,25 @@ export function AnalyticsPage() {
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        // Fetch analytics data from API
-        // const occupancy = await get('/analytics/occupancy');
-        // const anomalyData = await get('/analytics/anomalies');
-        // const clusterData = await get('/analytics/clusters');
+        const query = `?from=${dateRange.from || ''}&to=${dateRange.to || ''}`;
 
-        // Temporary mock data
-        setOccupancyData([
-          { timestamp: '10:00', occupancy: 45 },
-          { timestamp: '11:00', occupancy: 52 },
-          { timestamp: '12:00', occupancy: 78 },
-          { timestamp: '13:00', occupancy: 85 },
-          { timestamp: '14:00', occupancy: 72 },
+        const [occupancy, anomalyData, clusterData, statsData] = await Promise.all([
+          get(`/analytics/occupancy${query}`),
+          get(`/analytics/anomalies${query}`),
+          get(`/analytics/clusters${query}`),
+          get(`/dashboard/stats`),
         ]);
 
-        setAnomalies([
-          { type: 'Unusual Pattern', severity: 'High' },
-          { type: 'Peak Hour', severity: 'Medium' },
-        ]);
-
-        setClusters([
-          { id: 'C1', size: 45, center: 0.65, density: 0.8, characteristics: 'Peak Hours' },
-          { id: 'C2', size: 30, center: 0.35, density: 0.6, characteristics: 'Off-Peak' },
-        ]);
-
-        setStats({ available: 25, occupied: 75 });
-        setLoading(false);
+        setOccupancyData(occupancy);
+        setAnomalies(anomalyData);
+        setClusters(clusterData);
+        setStats({
+          available: statsData.available,
+          occupied: statsData.occupied,
+        });
       } catch (error) {
         console.error('Error fetching analytics:', error);
+      } finally {
         setLoading(false);
       }
     };

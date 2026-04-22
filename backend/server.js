@@ -1,23 +1,28 @@
+require("dotenv").config({ path: "../.env" });
+
 const mqtt = require("mqtt");
 const express = require("express");
 const mongoose = require("mongoose");
 
 const Vehicle = require("./models/vehicle");
 const Slot = require("./models/slot");
-const Alert = require("./models/Alert");
+const Alert = require("./models/alert");
 
 const app = express();
 app.use(express.json());
 
-// -------- MONGODB --------
-const MONGO_URI =
-  "mongodb://yogarajansujeevan2002_db_user:IOTBDA81@ac-die1gpm-shard-00-00.1kws2ir.mongodb.net:27017,ac-die1gpm-shard-00-01.1kws2ir.mongodb.net:27017,ac-die1gpm-shard-00-02.1kws2ir.mongodb.net:27017/parkingDB?ssl=true&replicaSet=atlas-4j3m4l-shard-0&authSource=admin&appName=ParkingSystem";
+const MONGO_URI = process.env.MONGO_URI;
+const PORT = process.env.PORT || 3001;
 
 let isMongoReady = false;
 
 // -------- CONNECT MONGODB --------
 async function connectMongo() {
   try {
+    if (!MONGO_URI) {
+      throw new Error("MONGO_URI is missing. Check your .env file.");
+    }
+
     await mongoose.connect(MONGO_URI, {
       dbName: "parkingDB",
       serverSelectionTimeoutMS: 10000,
@@ -60,7 +65,7 @@ client.on("connect", () => {
     "parking/rfid",
     "parking/slot",
     "parking/smoke",
-    "parking/gate/status"
+    "parking/gate/status",
   ];
 
   topics.forEach((topic) => {
@@ -116,7 +121,7 @@ client.on("message", async (topic, message) => {
           owner: "New User",
           vehicleNumber: "TEMP-" + rfid.slice(-4),
           accessType: "REGISTERED",
-          createdAt: new Date()
+          createdAt: new Date(),
         });
 
         const savedVehicle = await newVehicle.save();
@@ -144,7 +149,7 @@ client.on("message", async (topic, message) => {
           ultrasonicStatus: data.status,
           status: data.status,
           distance: Number(data.distance),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         });
         console.log(`Creating slot ${data.slot}`);
       } else {
@@ -169,7 +174,7 @@ client.on("message", async (topic, message) => {
           type: "SMOKE",
           message: "Smoke or harmful gas detected",
           value: Number(data.value),
-          createdAt: new Date()
+          createdAt: new Date(),
         });
 
         console.log("Smoke alert stored");
@@ -204,7 +209,7 @@ app.get("/api/health", (req, res) => {
     mongoReady: isMongoReady,
     readyState: mongoose.connection.readyState,
     dbName: mongoose.connection.name,
-    mqttConnected: client.connected
+    mqttConnected: client.connected,
   });
 });
 
@@ -239,12 +244,12 @@ app.get("/api/alerts", async (req, res) => {
 async function startServer() {
   await connectMongo();
 
-  app.listen(3000, () => {
-    console.log("Server running on port 3000");
-    console.log("Health: http://localhost:3000/api/health");
-    console.log("Vehicles: http://localhost:3000/api/vehicles");
-    console.log("Slots: http://localhost:3000/api/slots");
-    console.log("Alerts: http://localhost:3000/api/alerts");
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Health: http://localhost:${PORT}/api/health`);
+    console.log(`Vehicles: http://localhost:${PORT}/api/vehicles`);
+    console.log(`Slots: http://localhost:${PORT}/api/slots`);
+    console.log(`Alerts: http://localhost:${PORT}/api/alerts`);
   });
 }
 
