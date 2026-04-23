@@ -1,10 +1,9 @@
 const mongoose = require("mongoose");
 
-const slotSchema = new mongoose.Schema({
+const slotHistorySchema = new mongoose.Schema({
   slotNumber: {
     type: Number,
     required: true,
-    unique: true,
   },
   distance: {
     type: Number,
@@ -21,4 +20,4 @@ const slotSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("Slot", slotSchema);
+module.exports = mongoose.model("SlotHistory", slotHistorySchema);
